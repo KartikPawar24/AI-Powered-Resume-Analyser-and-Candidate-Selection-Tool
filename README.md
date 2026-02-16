@@ -24,20 +24,46 @@ For deeper documentation and implementation notes, see [here](details.md).
 
 ## Project Layout
 
-- `main.py` — primary script: loads PDFs from `data/`, creates a Chroma vectorstore at `vectorstore/`, and starts an interactive QA loop.
-- `data/` — place PDF resumes here (project expects `*.pdf`).
-- `vectorstore/` — created by the app to persist embeddings (safe to delete and rebuild).
+- `main.py` — primary script: orchestrates the RAG pipeline (loads PDFs, creates vectorstore, starts interactive QA session)
+- `config.py` — centralized configuration (model params, chunk settings, retrieval config)
+- `llm_factory.py` — creates LLM and prompt template for the RAG pipeline
+- `document_loader.py` — loads and extracts text from PDF resumes
+- `text_processor.py` — chunks documents using `RecursiveCharacterTextSplitter`
+- `vectorstore.py` — builds and persists Chroma vectorstore with Ollama embeddings
+- `rag_pipeline.py` — core RAG logic (retrieval + generation)
+- `data/` — place PDF resumes here (project expects `*.pdf`)
+- `vectorstore/` — created by the app to persist embeddings (safe to delete and rebuild)
 
 ## Requirements
 
 - Python 3.11+ (virtual environment recommended)
-- Ollama installed and running locally (for the Ollama embeddings & chat models)
-- A working Chroma backend (the project uses the lightweight local Chroma bindings)
-- Recommended packages are captured in `requirements.txt` for this project environment — install into a venv.
+- Ollama installed and running locally (for embeddings & chat models)
+- Access to Ollama models:
+  - `nomic-embed-text` — for generating embeddings
+  - `phi4-mini:3.8b` — for candidate analysis (default; `gemma3:4b` is also supported)
 
-Example core Python packages used:
+### Core Dependencies
 
-- `langchain_community`, `langchain_core`, `langchain_ollama`, `langchain_chroma`, `langchain_text_splitters`, `PyPDFLoader` (via the loader), and `shutil` (stdlib).
+All Python packages are captured in `requirements.txt`. Key packages include:
+
+- **LangChain Ecosystem**: 
+  - `langchain-core==1.2.9` — core abstractions
+  - `langchain-community==0.4.1` — integrations (PyPDFLoader)
+  - `langchain-ollama==1.0.1` — Ollama LLM & embedding support
+  - `langchain-chroma==1.1.0` — ChromaDB vector store
+  - `langchain-text-splitters==1.1.0` — document chunking
+  
+- **Vector Store & Embeddings**:
+  - `chromadb==1.5.0` — vector database
+  
+- **PDF Processing**:
+  - `pypdf==6.7.0` — PDF text extraction
+  
+- **LLM Integration**:
+  - `ollama==0.6.1` — Ollama client library
+  - `pydantic==2.12.5` — data validation
+
+See `requirements.txt` for the complete dependency list.
 
 ## Setup (Quick)
 
@@ -82,9 +108,16 @@ What are the key skills listed by Anikit ?
 
 ## Configuration & Notes
 
-- Model choices are in `main.py` (`llm` and `OllamaEmbeddings`). Change these if you want different models.
-- If the `vectorstore/` directory exists the script will delete it and recreate the vectorstore on each run — modify `main.py` if you want to preserve or update incrementally.
-- The prompt template in `main.py` is tuned to act as a senior technical recruiter; adjust `prompt_tempate` to change behavior.
+All configuration is centralized in `config.py`:
+
+- **Model**: Default is `phi4-mini:3.8b`; change `MODEL_CONFIG["model"]` to use alternatives (e.g., `gemma3:4b`)
+- **Temperature**: Set to `0` for deterministic responses; adjust in `MODEL_CONFIG["temperature"]`
+- **Embeddings**: Uses `nomic-embed-text` via Ollama; configured in `EMBEDDING_MODEL`
+- **Chunking**: Documents are split into 800-character chunks with 50-character overlap (configurable in `CHUNK_CONFIG`)
+- **Retrieval**: By default, retrieves 6 most similar chunks per query (configurable in `RETRIEVAL_CONFIG["k"]`)
+- **Prompt**: Tuned to act as a senior technical recruiter; modify `PROMPT_TEMPLATE` in `llm_factory.py` to change behavior
+
+**Important**: The vectorstore is deleted and recreated on each run. Modify `vectorstore.py` if you want to preserve incremental updates.
 
 ## Troubleshooting
 

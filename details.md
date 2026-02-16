@@ -24,6 +24,7 @@ The experiment was conducted 100% offline using Ollama, ensuring full data priva
     - [Why This Matters](#why-this-matters)
   - [🧠 What is RAG?](#-what-is-rag)
     - [Pipeline Used](#pipeline-used)
+    - [Architecture & Code Organization](#architecture--code-organization)
   - [💬 Prompt Template Used](#-prompt-template-used)
   - [Why This Prompt Matters](#why-this-prompt-matters)
   - [Query Used](#query-used)
@@ -95,6 +96,34 @@ Retrieval-Augmented Generation improves LLM outputs by grounding them in externa
 4. Store in ChromaDB
 5. Retrieve relevant chunks
 6. Generate grounded candidate analysis
+
+### Architecture & Code Organization
+
+The project follows a modular, production-ready architecture:
+
+```
+├── main.py                    # Entry point - orchestrates the RAG pipeline
+├── config.py                  # Centralized configuration
+├── llm_factory.py             # LLM & prompt template creation
+├── document_loader.py         # PDF loading & text extraction
+├── text_processor.py          # Document chunking logic
+├── vectorstore.py             # ChromaDB initialization & retrieval setup
+├── rag_pipeline.py            # Core RAG execution (query → context → answer)
+├── requirements.txt           # Dependencies
+└── data/                      # Input: PDF resumes
+```
+
+**Module Responsibilities:**
+
+- **config.py**: Single source of truth for all configuration (models, chunk sizes, retrieval params)
+- **llm_factory.py**: Instantiates the LLM and creates the prompt template with guardrails
+- **document_loader.py**: Uses PyPDFLoader to extract text and preserve metadata
+- **text_processor.py**: Applies RecursiveCharacterTextSplitter for context-aware chunking
+- **vectorstore.py**: Manages Chroma vector store lifecycle (init, embedding, persistence)
+- **rag_pipeline.py**: Simple retrieval-generation loop with context formatting
+- **main.py**: Wires all components and provides interactive Q&A interface
+
+This modular design allows easy swapping of components (e.g., different embeddings, different LLMs, or caching strategies).
 
 ## 💬 Prompt Template Used
 
@@ -254,12 +283,58 @@ For production-level systems:
 
 ## 🛠 Tech Stack
 
-- Python
-- LangChain
-- ChromaDB
-- Ollama
-- gemma3:4b
-- phi4-mini:3.8b
+### Core Framework
+- **LangChain** — LLM orchestration and RAG framework
+  - `langchain==1.2.9`
+  - `langchain-core==1.2.9` — core abstractions
+  - `langchain-community==0.4.1` — document loaders & integrations
+  - `langchain-ollama==1.0.1` — Ollama LLM & embeddings
+  - `langchain-chroma==1.1.0` — ChromaDB integration
+  - `langchain-text-splitters==1.1.0` — recursive text chunking
+
+### LLM & Embeddings Runtime
+- **Ollama** — local LLM runtime
+  - `ollama==0.6.1` — Python client
+- **Supported Models**:
+  - `phi4-mini:3.8b` — primary model (faster, 3.8B params)
+  - `gemma3:4b` — alternative comparison model (4B params)
+  - `nomic-embed-text` — embedding model
+
+### Vector Store & Retrieval
+- **ChromaDB** — vector database
+  - `chromadb==1.5.0`
+  - OpenTelemetry for observability
+  - SQLAlchemy for database operations
+
+### Document Processing
+- **PDF Parsing**: `pypdf==6.7.0` — extracts text from PDFs
+- **Text Splitting**: Recursive character-level splitting with configurable overlaps
+- **Chunking Strategy**: 800-character chunks with 50-character overlap
+
+### Data & Validation
+- `pydantic==2.12.5` — schema validation
+- `pydantic-settings==2.12.0` — configuration management
+- `python-dotenv==1.2.1` — environment variable loading
+
+### Network & Async
+- `httpx==0.28.1` — async HTTP client
+- `aiohttp==3.13.3` — async HTTP library
+- `anyio==4.12.1` — async backend abstraction
+- `websockets==16.0` — WebSocket support
+
+### Utilities
+- `click==8.3.1` — CLI framework
+- `rich==14.3.2` — rich terminal output
+- `python-dateutil==2.9.0.post0` — date utilities
+- `PyYAML==6.0.3` — YAML parsing
+- `tqdm==4.67.3` — progress bars
+
+### Development & Debugging
+- `ipython==9.10.0` — interactive shell
+- `jupyter_client==8.8.0` — Jupyter support
+- `debugpy==1.8.20` — debugging support
+
+For complete dependency list, see [requirements.txt](requirements.txt).
 
 ## 🔐 Privacy Advantage
 
