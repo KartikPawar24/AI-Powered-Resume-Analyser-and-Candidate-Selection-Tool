@@ -9,6 +9,9 @@
 
 AI-Powered Resume Analyser and Candidate Selction is a lightweight, local-first resume ingestion and question-answering tool built with LangChain components, Ollama embeddings/LLMs and Chroma vector store. It converts PDF resumes into searchable vectors and provides an interactive prompt to query candidate details (skills, experience, education, etc.).
 
+## Screenshot:
+![Screenshot-1](./screenshots/screenshot_1.png)
+
 For deeper documentation and implementation notes, see [here](details.md). 
 
 ## Key Features
