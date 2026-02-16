@@ -11,7 +11,7 @@ VECTORSTORE_PATH = Path("vectorstore")
 
 # Language model configuration
 MODEL_CONFIG = {
-    "model": "1phi4-mini:3.8b",  # Model identifier
+    "model": "phi4-mini:3.8b",  # Model identifier
     "temperature": 0,           # Deterministic outputs
     "num_ctx": 2048,            # Context window size
     "num_thread": 6             # Number of threads for inference
